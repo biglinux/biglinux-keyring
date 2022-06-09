@@ -1,0 +1,40 @@
+msg() {
+    local ALL_OFF="\e[1;0m"
+    local BOLD="\e[1;1m"
+    local GREEN="${BOLD}\e[1;32m"
+
+    local MESSAGE=$1
+    shift 1
+    printf "${GREEN}==>${ALL_OFF}${BOLD} ${MESSAGE}${ALL_OFF}\n" "$@" >&2
+}
+
+pre_upgrade() {
+# 	if [[ "$(vercmp $2 20220509-2)" -lt 0 ]]; then
+# 		msg "Delete wrongly disabled keys"
+# 		pacman-key -d 688E8F82879D0E25CE541426150C200743ED46D8
+# 		pacman-key -d 3B794DE6D4320FCE594F4171279E7CF5D8D56EC8
+# 		pacman-key -d 2FCB09A0E026F49B1060840BC0D1CCE50CC38123
+# 		pacman-key -d A44C644D792767CED7941AFEABB2075D5F310CF8
+# 		pacman-key -d 77DC01C9971AC3C39A0626F72C089F09AC97B894
+# 		pacman-key -d 75C1B95A4D9514A57EB2DAE71817DC63CD3B5DF5
+# 		pacman-key -d F66AD0FF0E57C561615A0901CEE477135C5872B0
+# 		pacman-key -d 2C688B52E3FC0144B7484BABE3B3F44AC45EE0AA
+# 		pacman-key -d 5A97ED6B72418199F0C22B23137C934B5DCB998E
+# 		pacman-key -d 7C89F4D439B2BFACF425107B62443D89B35859F8
+# 	fi
+}
+
+post_upgrade() {
+	if usr/bin/pacman-key -l >/dev/null 2>&1; then
+		usr/bin/pacman-key --populate biglinux
+	else
+		echo " >>> Run \`pacman-key --init\` to set up your pacman keyring."
+		echo " >>> Then run \`pacman-key --populate biglinux\` to install the BigLinux keyring."
+	fi
+}
+
+post_install() {
+	if [ -x usr/bin/pacman-key ]; then
+		post_upgrade
+	fi
+}
