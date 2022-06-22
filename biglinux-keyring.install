@@ -28,8 +28,10 @@ post_upgrade() {
 	if usr/bin/pacman-key -l >/dev/null 2>&1; then
 		usr/bin/pacman-key --populate biglinux
 	else
-		echo " >>> Run \`pacman-key --init\` to set up your pacman keyring."
-		echo " >>> Then run \`pacman-key --populate biglinux\` to install the BigLinux keyring."
+		usr/bin/pacman-key --init
+		usr/bin/pacman-key --populate biglinux
+#		echo " >>> Run \`pacman-key --init\` to set up your pacman keyring."
+#		echo " >>> Then run \`pacman-key --populate biglinux\` to install the BigLinux keyring."
 	fi
 }
 
