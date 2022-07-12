@@ -8,7 +8,7 @@
 # Pierre Schmitz <pierre@archlinux.de>
 
 pkgname=biglinux-keyring
-pkgver=20220608
+pkgver=20220712
 pkgrel=3
 pkgdesc='BigLinux PGP keyring'
 arch=('any')

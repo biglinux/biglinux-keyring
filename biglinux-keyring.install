@@ -8,7 +8,7 @@ msg() {
     printf "${GREEN}==>${ALL_OFF}${BOLD} ${MESSAGE}${ALL_OFF}\n" "$@" >&2
 }
 
-pre_upgrade() {
+# pre_upgrade() {
 # 	if [[ "$(vercmp $2 20220509-2)" -lt 0 ]]; then
 # 		msg "Delete wrongly disabled keys"
 # 		pacman-key -d 688E8F82879D0E25CE541426150C200743ED46D8
@@ -22,17 +22,154 @@ pre_upgrade() {
 # 		pacman-key -d 5A97ED6B72418199F0C22B23137C934B5DCB998E
 # 		pacman-key -d 7C89F4D439B2BFACF425107B62443D89B35859F8
 # 	fi
-}
+# }
 
 post_upgrade() {
 	if usr/bin/pacman-key -l >/dev/null 2>&1; then
 		usr/bin/pacman-key --populate biglinux
 	else
-		usr/bin/pacman-key --init
-		usr/bin/pacman-key --populate biglinux
-#		echo " >>> Run \`pacman-key --init\` to set up your pacman keyring."
-#		echo " >>> Then run \`pacman-key --populate biglinux\` to install the BigLinux keyring."
+		pacman-key --init
+		pacman-key --populate biglinux
+		#echo " >>> Run \`pacman-key --init\` to set up your pacman keyring."
+		#echo " >>> Then run \`pacman-key --populate biglinux\` to install the BigLinux keyring."
 	fi
+	
+	md5sum=$(md5sum /etc/pacman.conf | awk '{print $1}')
+	chaotic=$(grep chaotic-aur /etc/pacman.conf)
+	if [ "$md5sum" != "f9a5f2f1ab90bd967a15916dba3fa65d" ]; then
+		echo '#
+# /etc/pacman.conf
+#
+# See the pacman.conf(5) manpage for option and repository directives
+
+#
+# GENERAL OPTIONS
+#
+[options]
+# The following paths are commented out with their default values listed.
+# If you wish to use different paths, uncomment and update the paths.
+#RootDir     = /
+#DBPath      = /var/lib/pacman/
+CacheDir = /var/cache/pacman/pkg/
+#LogFile     = /var/log/pacman.log
+#GPGDir      = /etc/pacman.d/gnupg/
+#HookDir     = /etc/pacman.d/hooks/
+HoldPkg      = pacman glibc manjaro-system
+# If upgrades are available for these packages they will be asked for first
+SyncFirst    = manjaro-system archlinux-keyring manjaro-keyring biglinux-keyring
+#XferCommand = /usr/bin/curl -C - -f %u > %o
+#XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u
+#CleanMethod = KeepInstalled
+#UseDelta    = 0.7
+Architecture = auto
+ParallelDownloads = 7
+
+#IgnorePkg   =
+#IgnorePkg   =
+#IgnoreGroup =
+
+#NoUpgrade   =
+#NoExtract   =
+
+# Misc options
+#UseSyslog
+Color
+#TotalDownload
+# We cannot check disk space from within a chroot environment
+CheckSpace
+#VerbosePkgLists
+
+# By default, pacman accepts packages signed by keys that its local keyring
+# trusts (see pacman-key and its man page), as well as unsigned packages.
+SigLevel    = Required DatabaseNever
+LocalFileSigLevel = Optional
+#RemoteFileSigLevel = Required
+
+# NOTE: You must run `pacman-key --init` before first using pacman; the local
+# keyring can then be populated with the keys of all official Manjaro Linux
+# packagers with `pacman-key --populate archlinux manjaro`.
+
+#
+# REPOSITORIES
+#   - can be defined here or included from another file
+#   - pacman will search repositories in the order defined here
+#   - local/custom mirrors can be added here or in separate files
+#   - repositories listed first will take precedence when packages
+#     have identical names, regardless of version number
+#   - URLs will have $repo replaced by the name of the current repo
+#   - URLs will have $arch replaced by the name of the architecture
+#
+# Repository entries are of the format:
+#       [repo-name]
+#       Server = ServerName
+#       Include = IncludePath
+#
+# The header [repo-name] is crucial - it must be present and
+# uncommented to enable the repo.
+#
+
+# The testing repositories are disabled by default. To enable, uncomment the
+# repo name header and Include lines. You can add preferred servers immediately
+# after the header, and they will be used before the default mirrors.
+
+[biglinux-update-stable]
+SigLevel = PackageRequired
+Server = https://repo.biglinux.com.br/update-stable/$arch
+
+[core]
+SigLevel = PackageRequired
+Include = /etc/pacman.d/mirrorcdn
+Include = /etc/pacman.d/mirrorlist
+
+[extra]
+SigLevel = PackageRequired
+Include = /etc/pacman.d/mirrorcdn
+Include = /etc/pacman.d/mirrorlist
+
+[community]
+SigLevel = PackageRequired
+Include = /etc/pacman.d/mirrorcdn
+Include = /etc/pacman.d/mirrorlist
+
+
+# If you want to run 32 bit applications on your x86_64 system,
+# enable the multilib repositories as required here.
+
+[multilib]
+SigLevel = PackageRequired
+Include = /etc/pacman.d/mirrorcdn
+Include = /etc/pacman.d/mirrorlist
+
+[biglinux-stable]
+SigLevel = PackageRequired
+Server = https://repo.biglinux.com.br/stable/$arch
+
+# An example of a custom package repository.  See the pacman manpage for
+# tips on creating your own repositories.
+#[custom]
+#SigLevel = Optional TrustAll
+#Server = file:///home/custompkgs
+' | tee /etc/pacman.conf
+	fi
+
+	if [ -n "$chaotic" ];then
+		echo '[chaotic-aur]
+Include = /etc/pacman.d/chaotic-mirrorlist
+' | tee -a /etc/pacman.conf
+	fi
+	
+# 	if [ -n "grep -w '\[biglinux]' /etc/pacman.conf" ]; then
+# 		sed -i '/\[biglinux\]/d' /etc/pacman.conf
+# 	fi
+# 	if [ -n "grep -x "SigLevel = Optional TrustAll" /etc/pacman.conf"  ]; then
+# 		sed -i '/SigLevel = Optional TrustAll/d' /etc/pacman.conf
+# 	fi
+# 	if [ -n "grep -w "SigLevel = Never" /etc/pacman.conf" ];then
+# 		sed -i '/SigLevel = Never/d' /etc/pacman.conf
+# 	fi
+# 	if [ -n "grep -w build.biglinux.com.br /etc/pacman.conf" ]; then
+# 		sed -i '/Server = https\:\/\/build.biglinux.com.br\/$arch/d' /etc/pacman.conf
+# 	fi
 }
 
 post_install() {
