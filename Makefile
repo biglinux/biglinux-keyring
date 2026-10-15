@@ -1,10 +1,10 @@
-V=20220514
-
-PREFIX = /usr/local
+PREFIX = /usr
+TRUSTED= $(shell cat biglinux-trusted | cut -d: -f1)
+REVOKED= $(shell cat biglinux-revoked)
 
 update:
-	gpg --recv-keys $(cat biglinux-trusted | cut -d: -f1) $(cat biglinux-revoked)
-	gpg --export --armor $(cat biglinux-trusted | cut -d: -f1) $(cat biglinux-revoked) > biglinux.gpg
+	gpg --recv-keys $(TRUSTED) $(REVOKED)
+	gpg --export --armor $(TRUSTED) $(REVOKED) > biglinux.gpg
 
 install:
 	install -dm755 $(DESTDIR)$(PREFIX)/share/pacman/keyrings/
