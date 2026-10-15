@@ -18,12 +18,47 @@ right after installation or upgrade.
 ## Using the repository on a new system
 
 The keyring package is itself signed with the BigLinux key, so trust the
-current key once before installing it:
+current key once before installing it. The key is published on
+`keyserver.ubuntu.com`, the default keyserver of GnuPG and pacman-key:
 
 ```bash
-sudo pacman-key --recv-keys F7EB9C2849EFFEFF05789738047C6A782618D2CA --keyserver keyserver.ubuntu.com
-sudo pacman-key --lsign-key F7EB9C2849EFFEFF05789738047C6A782618D2CA
+sudo pacman-key --recv-keys 047C6A782618D2CA && sudo pacman-key --lsign-key 047C6A782618D2CA
+```
+
+`047C6A782618D2CA` is the long ID of the key (the last 16 characters of the
+fingerprint). The full fingerprint works too:
+`F7EB9C2849EFFEFF05789738047C6A782618D2CA`.
+
+Then add the repositories to `/etc/pacman.conf`, after the Manjaro ones:
+
+```ini
+[biglinux-testing]
+SigLevel = PackageRequired
+Server = https://packages.biglinux.com.br/testing/$arch
+
+[biglinux-stable]
+SigLevel = PackageRequired
+Server = https://packages.biglinux.com.br/stable/$arch
+
+[biglinux-extra]
+SigLevel = PackageRequired
+Server = https://packages.biglinux.com.br/extra/$arch
+```
+
+`biglinux-testing` is optional: it receives packages before `biglinux-stable`.
+`biglinux-extra` holds AUR and third-party packages.
+
+Finally, install the keyring, which keeps the keys up to date from now on:
+
+```bash
 sudo pacman -Sy biglinux-keyring
+```
+
+If the keyserver answers `No data` right after a key update, restart pacman's
+dirmngr and try again:
+
+```bash
+sudo gpgconf --homedir /etc/pacman.d/gnupg --kill dirmngr
 ```
 
 ## Updating the keys
