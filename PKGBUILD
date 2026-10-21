@@ -3,7 +3,7 @@
 
 pkgname=biglinux-keyring
 pkgdesc="BigLinux PGP keyring"
-depends=('pacman')
+depends=('pacman' 'biglinux-mirrorlist')   # mirrorlists of the BigLinux repositories
 pkgver=$(date +%y.%m.%d)
 pkgrel=$(date +%H%M)
 epoch=1
