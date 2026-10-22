@@ -29,44 +29,39 @@ sudo pacman-key --recv-keys 047C6A782618D2CA && sudo pacman-key --lsign-key 047C
 fingerprint). The full fingerprint works too:
 `F7EB9C2849EFFEFF05789738047C6A782618D2CA`.
 
-Then add the stable repository to `/etc/pacman.conf`, after the Manjaro ones,
-just to install the keyring and the mirrorlists:
+Then add the repositories to `/etc/pacman.conf`. Every section uses the same
+line, as Arch and Manjaro do: pacman replaces `$repo` with the section name.
+`[biglinux-priority]` goes above Manjaro's `[core]`, the others after
+Manjaro's sections:
 
 ```ini
-[biglinux-stable]
+[biglinux-priority]
 SigLevel = PackageRequired
-Server = https://packages.biglinux.com.br/stable/$arch
-```
+Server = https://packages.biglinux.com.br/$repo/$arch
 
-```bash
-sudo pacman -Sy biglinux-keyring biglinux-mirrorlist
-```
+[core]
+...
 
-`biglinux-keyring` keeps the keys up to date from now on, and
-[biglinux-mirrorlist](https://github.com/biglinux/biglinux-mirrorlist) installs
-the server list of each repository in `/etc/pacman.d/`. Now replace that entry
-with the final ones, which use the mirrorlists instead of a server URL:
-
-```ini
 [biglinux-testing]
 SigLevel = PackageRequired
-Include = /etc/pacman.d/biglinux-testing-mirrorlist
+Server = https://packages.biglinux.com.br/$repo/$arch
 
 [biglinux-stable]
 SigLevel = PackageRequired
-Include = /etc/pacman.d/biglinux-stable-mirrorlist
+Server = https://packages.biglinux.com.br/$repo/$arch
 
 [biglinux-extra]
 SigLevel = PackageRequired
-Include = /etc/pacman.d/biglinux-extra-mirrorlist
+Server = https://packages.biglinux.com.br/$repo/$arch
 ```
 
+`biglinux-priority` holds BigLinux builds of packages Manjaro also has.
 `biglinux-testing` is optional: it receives packages before `biglinux-stable`.
-`biglinux-extra` holds AUR and third-party packages. Then refresh the
-databases:
+`biglinux-extra` holds AUR and third-party packages. Then install the keyring,
+which keeps the keys up to date from now on:
 
 ```bash
-sudo pacman -Syu
+sudo pacman -Syu biglinux-keyring
 ```
 
 If the keyserver answers `No data` right after a key update, restart pacman's
