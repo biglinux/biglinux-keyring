@@ -1,0 +1,39 @@
+name: Build Package
+
+# Controls when the workflow will run
+on:
+  workflow_dispatch:
+  
+  # Asks the BigLinux build service to build the package. In GitHub filters
+  # "*" does not match "/", so work branches such as feature/x or fix/y never
+  # trigger it: experiment there, and merge to master when it is ready.
+  # Changes that cannot alter the package do not trigger it either.
+  push:
+    #branches: [ "master", "main", "*" ]
+    branches: [ "*" ]
+    paths-ignore:
+      - "docs/**"
+      - "tests/**"
+      - "README.md"
+      - ".github/workflows/tests.yml"
+      - "locale/templates/**"
+      - "locale/*.sh"
+  #pull_request:
+    #branches: [ "master", "main", "*" ]
+    #branches: [ "*" ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Send Hooks BigLinux Build Package
+        shell: bash
+        run: |
+          curl -X POST -H "Accept: application/json" -H "Authorization: token ${{ secrets.WEBHOOK_TOKEN }}" --data '{"event_type": "${{ github.repository }}", "client_payload": { "branch": "${{ github.ref_name }}", "url": "https://github.com/${{ github.repository }}", "version": "1.2.3"}}' https://api.github.com/repos/BigLinux-Package-Build/build-package/dispatches
+          curl -X POST -H "Accept: application/json" -H "Authorization: token ${{ secrets.WEBHOOK_TOKEN }}" --data '{"event_type": "${{ github.repository }}", "client_payload": { "branch": "${{ github.ref_name }}", "url": "https://github.com/${{ github.repository }}"}}' https://api.github.com/repos/BigLinux-Package-Build/build-package-ARM/dispatches
+          
